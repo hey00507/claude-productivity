@@ -83,7 +83,8 @@ Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
    - frontmatter의 Obsidian 태그 → 블로그 태그로 변환
 
 3. 파일을 `/Users/ethankim/WebstormProjects/blog/src/content/posts/{category}/` 에 저장
-   - 파일명: kebab-case로 변환 (예: `my-first-post.md`)
+   - 파일명: 한글 또는 영어 자유 (예: `블로그를-시작하며.md`, `astro-setup.md`)
+   - URL은 pubDate 기반으로 자동 생성되므로 파일명은 관리 편의에 맞게 설정
 
 4. 로컬 빌드 테스트: `cd /Users/ethankim/WebstormProjects/blog && pnpm build`
 
@@ -98,9 +99,10 @@ Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
 
 - **제목**: {제목}
 - **카테고리**: {카테고리}
-- **URL**: https://hey00507.github.io/blog/posts/{slug}/
+- **URL**: https://hey00507.github.io/blog/posts/{yyyymmdd}/
 
 배포가 완료되면 위 URL에서 확인할 수 있어요 (약 30초 소요).
+(URL은 pubDate 기준 자동 생성. 같은 날 여러 글이면 -1, -2 붙음)
 ```
 
 ### 주의사항
