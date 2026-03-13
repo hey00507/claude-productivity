@@ -45,4 +45,4 @@ allowed-tools: Bash, Read, Glob, Grep
 
 ### 라이브 URL
 
-마지막에 항상 표시: **🔗 https://hey00507.github.io/blog/**
+마지막에 항상 표시: **🔗 https://hey00507.github.io/**

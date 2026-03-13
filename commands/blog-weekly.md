@@ -99,7 +99,7 @@ pubDate: {종료일}T23:00:00
 
 - **제목**: 2026년 {N}주차 회고
 - **기간**: {시작일} ~ {종료일}
-- **URL**: https://hey00507.github.io/blog/posts/{yyyymmdd}/
+- **URL**: https://hey00507.github.io/posts/{yyyymmdd}/
 
 배포 완료까지 약 30초 소요.
 ```

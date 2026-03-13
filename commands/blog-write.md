@@ -99,7 +99,7 @@ Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
 
 - **제목**: {제목}
 - **카테고리**: {카테고리}
-- **URL**: https://hey00507.github.io/blog/posts/{yyyymmdd}/
+- **URL**: https://hey00507.github.io/posts/{yyyymmdd}/
 
 배포가 완료되면 위 URL에서 확인할 수 있어요 (약 30초 소요).
 (URL은 pubDate 기준 자동 생성. 같은 날 여러 글이면 -1, -2 붙음)
