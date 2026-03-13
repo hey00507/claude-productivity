@@ -22,6 +22,9 @@
 | `/schedule-add` | 자연어로 일정을 등록합니다 (캘린더 + 리마인더 동시 등록) | [schedule-add.md](commands/schedule-add.md) |
 | `/clarify` | 소크라테스식 질문을 통해 모호한 아이디어를 구체화합니다 | [clarify.md](commands/clarify.md) |
 | `/obsidian` | 현재 대화 내용을 분석하여 Obsidian vault에 구조화된 노트로 정리합니다 | [obsidian.md](commands/obsidian.md) |
+| `/blog` | 블로그 현황 조회 — 전체 통계 + 최근 5개 글 + 독려 메시지 | [blog.md](commands/blog.md) |
+| `/blog-write` | Obsidian 노트를 블로그에 투고 — 카테고리/태그 자동 매칭 + clarify 방식 다듬기 | [blog-write.md](commands/blog-write.md) |
+| `/blog-del` | 블로그 게시글 삭제 — 확인 후 삭제 + 자동 재배포 | [blog-del.md](commands/blog-del.md) |
 
 ## 설치
 
@@ -38,6 +41,9 @@ cp commands/schedule.md ~/.claude/commands/
 cp commands/schedule-add.md ~/.claude/commands/
 cp commands/clarify.md ~/.claude/commands/
 cp commands/obsidian.md ~/.claude/commands/
+cp commands/blog.md ~/.claude/commands/
+cp commands/blog-write.md ~/.claude/commands/
+cp commands/blog-del.md ~/.claude/commands/
 ```
 
 > `/schedule`, `/schedule-add`, `/obsidian`은 MCP 서버 연동이 필요합니다 (google-calendar, apple-reminders, obsidian).
@@ -46,7 +52,8 @@ cp commands/obsidian.md ~/.claude/commands/
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - `/schedule`, `/schedule-add` — [google-calendar MCP](https://github.com/nspady/google-calendar-mcp), [apple-reminders MCP](https://github.com/pzingg/apple-reminders-mcp)
-- `/obsidian` — [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) + Obsidian MCP
+- `/obsidian`, `/blog-write` — [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) + Obsidian MCP
+- `/blog`, `/blog-write`, `/blog-del` — Astro 블로그 프로젝트 (GitHub Pages 배포)
 
 ## License
 
