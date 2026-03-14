@@ -1,76 +1,143 @@
 ---
-description: 구글 캘린더 일정을 조회하고 브리핑합니다. 오늘/이번주/특정 기간의 일정을 정리해줍니다.
-allowed-tools: mcp__google-calendar__list-events, mcp__google-calendar__search-events, mcp__google-calendar__get-current-time, mcp__apple-reminders__reminders_tasks, mcp__apple-reminders__reminders_lists, mcp__obsidian__search_notes, mcp__obsidian__read_note
-argument-hint: <today|week|tomorrow|날짜 또는 기간>
+description: 일정을 조회·브리핑하고, 필요하면 등록까지 합니다. "오늘 뭐 있어?", "이번주 일정", "내일 스케줄", "마라톤 일정 찾아줘", "3시에 치과 넣어줘" 등 일정과 관련된 모든 요청에 사용하세요.
+allowed-tools: mcp__google-calendar__list-events, mcp__google-calendar__search-events, mcp__google-calendar__get-current-time, mcp__google-calendar__create-event, mcp__apple-reminders__reminders_tasks, mcp__apple-reminders__reminders_subtasks, mcp__apple-reminders__reminders_lists, mcp__obsidian__search_notes, mcp__obsidian__read_note
+argument-hint: <today|week|tomorrow|날짜|기간|키워드|"언제 무엇">
 ---
 
-## 일정 브리핑 (/schedule)
+## 일정 관리 (/schedule)
 
-사용자의 Google Calendar 일정과 Apple Reminders를 조회하여 깔끔하게 브리핑한다.
+Google Calendar + Apple Reminders를 **조회·분석·등록**하는 통합 스킬이다.
 
-### 동작 방식
+---
 
-**모드 A: 기간 브리핑** (인자가 기간/날짜인 경우)
+### 1단계: 모드 판별
 
-1. `$ARGUMENTS`를 확인하여 조회 기간을 결정한다:
-   - 비어있거나 `today` → 오늘
-   - `tomorrow` → 내일
-   - `yesterday` → 어제
-   - `week` → 이번 주 (월~일)
-   - `last week` → 지난 주
-   - `month` → 이번 달
-   - 특정 날짜 (예: 3/5, 2026-02-15) → 해당 날짜
-   - 기간 (예: 3/1~3/10) → 해당 기간
-2. `mcp__google-calendar__get-current-time`으로 현재 시각 확인
-3. `mcp__google-calendar__list-events`로 해당 기간의 이벤트 조회
-4. `mcp__apple-reminders__reminders_tasks`로 미완료 리마인더 조회 (dueWithin 또는 전체)
-5. 결과를 시간순으로 정리하여 브리핑
-6. 과거 일정은 "지난 일정", 오늘 이후는 "예정 일정"으로 구분
+`$ARGUMENTS`를 보고 3가지 모드 중 하나를 선택한다:
 
-**모드 B: 특정 일정 상세 조회** (인자가 일정 이름/키워드인 경우)
+| 패턴 | 모드 | 예시 |
+|------|------|------|
+| 비어있음 / 기간 키워드 / 날짜 | **A (브리핑)** | `today`, `week`, `3/15`, `3/1~3/10` |
+| 일정 이름·키워드 | **B (검색)** | `마라톤`, `팀미팅` |
+| 날짜 + 일정명 | **C (등록)** | `오늘 3시 치과`, `내일 10시 팀미팅` |
 
-사용자가 특정 일정에 대해 물어보면 (예: `/schedule 마라톤`, `/schedule 팀미팅`):
-1. `mcp__google-calendar__search-events`로 키워드 검색
-2. `mcp__apple-reminders__reminders_tasks`로 키워드 검색 (search 파라미터)
-3. Obsidian vault에서 키워드로 노트 검색 (search_notes)
-4. 세 소스의 결과를 종합하여 해당 일정의 디테일 브리핑
+**모드 A 기간 매핑:**
+- 비어있음 / `today` → 오늘
+- `tomorrow` → 내일, `yesterday` → 어제
+- `week` → 이번 주 (월~일), `last week` → 지난 주
+- `month` → 이번 달
+- 날짜 (`3/5`, `2026-02-15`) → 해당 날짜
+- 기간 (`3/1~3/10`) → 해당 기간
 
-### Apple Reminders 조회 규칙
+---
 
-13개 리스트 전체를 조회한다:
-- Workspace, Job Hunting, Study - Work Skills, Study - Personal Growth
-- Classes & Meetups, Explore, Side Life
-- Running, Workout
-- Plans, Daily, Buying, Importants
+### 2단계: 데이터 조회
 
-리마인더 조회 시 리스트별로 그룹핑하여 표시한다.
+모든 모드에서 `mcp__google-calendar__get-current-time` (timeZone: `Asia/Seoul`)으로 현재 시각을 먼저 확인한다.
 
-### 출력 형식
+#### 모드 A — 기간 브리핑
+
+캘린더와 리마인더를 **병렬로** 조회한다:
+
+- `mcp__google-calendar__list-events` — 해당 기간 이벤트
+- `mcp__apple-reminders__reminders_tasks` — 해당 기간 리마인더 (모든 리스트 대상, `dueWithin` 파라미터로 기간 필터링)
+
+오늘 조회 시에는 **기한 없는 리마인더**도 추가 조회한다 (Daily, Plans 리스트에서 dueDate 없는 항목).
+
+#### 모드 B — 키워드 검색
+
+세 소스를 **병렬로** 검색한다:
+
+1. `mcp__google-calendar__search-events` — 키워드 검색
+2. `mcp__apple-reminders__reminders_tasks` — search 파라미터로 검색
+3. `mcp__obsidian__search_notes` — vault에서 관련 노트 검색
+
+키워드 확장: `running` → 러닝/마라톤/달리기, `work` → 회의/프로젝트/업무 등
+
+#### 모드 C — 일정 등록
+
+조회 없이 바로 등록 절차로 진행한다. (아래 "일정 등록" 섹션 참조)
+
+---
+
+### 3단계: 출력 형식
+
+#### 모드 A — 단일 날짜 (오늘/내일/특정일)
 
 ```markdown
-## 📅 오늘의 일정 (yyyy-mm-dd)
+## 📅 N월 D일 (요일) 일정
 
 ### 캘린더
-| 시간 | 일정 | 캘린더 |
-|------|------|--------|
-| 10:00 | 팀 미팅 | 일정 |
-| 14:00 | 치과 예약 | 일정 |
+| 시간 | 일정 |
+|------|------|
+| 10:00 | 팀 미팅 |
+| 14:00 | 치과 예약 |
+| 종일 | 프로젝트 마감일 |
 
-### 리마인더 (미완료)
+### 리마인더 (마감 예정)
 | 리스트 | 항목 | 마감 |
 |--------|------|------|
-| 🏃 Running | 동아마라톤 10K | 03/15 06:00 |
-| ✅ Daily | 장보기 | 기한없음 |
+| 🟢 Running | 동아마라톤 10K | 06:00 |
+| 🔴 Importants | 서류 제출 | 17:00 |
+
+### 기한 없는 할 일
+| 리스트 | 항목 |
+|--------|------|
+| 🩵 Daily | 장보기 |
+| 🩵 Daily | 택배 수령 |
 
 ### 요약
-- 오늘 총 N개의 일정이 있습니다.
-- 가장 가까운 일정: HH:MM 일정명
+- 캘린더 N개, 리마인더 N개
+- 다음 일정: HH:MM 일정명
 ```
 
-### 모드 B 출력 형식 (키워드 조회)
+**오늘 조회 시:**
+- "기한 없는 할 일" 섹션 별도 표시
+- 과거 시간 일정은 ~~취소선~~
+- "다음 일정"은 현재 시각 이후 가장 가까운 것
+
+**내일/특정일 조회 시:**
+- "기한 없는 할 일" 섹션 생략
+- 시간순 정렬만
+
+#### 모드 A — 주간/기간 조회
+
+요일(날짜)별로 나눠서 보여준다:
 
 ```markdown
-## 🔍 "키워드" 관련 일정
+## 📅 이번 주 일정 (3/10 ~ 3/16)
+
+### 월요일 (3/10)
+| 시간 | 일정 | 구분 |
+|------|------|------|
+| 09:00 | 팀 스탠드업 | 📅 |
+| - | 보고서 제출 (Workspace) | ✅ |
+
+### 화요일 (3/11)
+| 시간 | 일정 | 구분 |
+|------|------|------|
+| 14:00 | 치과 | 📅 |
+
+### 수~목 (3/12 ~ 3/13)
+일정 없음
+
+### 금요일 (3/14)
+| 시간 | 일정 | 구분 |
+|------|------|------|
+| 종일 | 프로젝트 마감 | 📅 |
+| - | 러닝화 수령 (Buying) | ✅ |
+
+### 주간 요약
+- 총 캘린더 N개, 리마인더 N개
+- 가장 바쁜 날: 금요일 (2개)
+```
+
+- 각 날짜 안에서 캘린더+리마인더를 시간순으로 통합
+- 일정 없는 연속 날짜는 합쳐서 표시
+
+#### 모드 B — 키워드 조회
+
+```markdown
+## 🔍 "마라톤" 관련 일정
 
 ### 캘린더 이벤트
 | 날짜 | 시간 | 일정 | 상태 |
@@ -80,19 +147,98 @@ argument-hint: <today|week|tomorrow|날짜 또는 기간>
 ### 리마인더
 | 리스트 | 항목 | 마감 | 상태 |
 |--------|------|------|------|
-| Running | 동아마라톤 10K - 광화문 도착 | 03/15 06:00 | 미완료 |
+| Running | 동아마라톤 준비 | 03/15 06:00 | 미완료 |
 
 ### 관련 Obsidian 노트
 - [[노트명]] (폴더/)
 ```
 
-### 모드 B 키워드 검색 규칙
-- `running` → 러닝, 마라톤, 달리기, running, marathon 등으로 확장 검색
-- `work` → 회의, 프로젝트, 업무 + Obsidian `010.Work/` 폴더 노트 포함
-- 그 외 키워드 → 캘린더/리마인더/Obsidian에서 해당 키워드 직접 검색
+결과 없는 섹션은 생략한다.
+
+---
+
+### 4단계: 분석 및 제안
+
+브리핑 후 아래 내용을 자연스럽게 덧붙인다 (해당되는 것만):
+
+- **임박한 일정**: 1시간 이내 일정이 있으면 강조
+- **준비물 체크**: 리마인더에 미완료 서브태스크가 있으면 알림
+- **빈 시간대 제안**: "오후가 비어있어요. 일정을 추가할까요?" (오늘 조회 시)
+- **충돌 감지**: 같은 시간대에 2개 이상 일정이 겹치면 알림
+
+사용자가 제안에 응하면 모드 C(등록)로 전환한다.
+
+---
+
+### 일정 등록 (모드 C)
+
+`$ARGUMENTS`에서 날짜/시간/일정명을 파싱한다.
+
+**날짜 해석:**
+- `오늘` → 오늘, `내일` → 내일, `모레` → 모레
+- `이번 주 금요일`, `다음 주 월요일` → 해당 요일
+- `3/15`, `3월 15일`, `2026-03-15` → 해당 날짜
+- 생략 시 → 오늘
+
+**시간 해석:**
+- `오전 9시`, `09:00`, `9시` → 09:00
+- `오후 2시`, `14시` → 14:00
+- 종료: `~16시` 명시 시 사용, 미지정 시 +1시간
+- 시간 생략 → 종일 이벤트
+
+**등록 절차:**
+
+Google Calendar과 Apple Reminders에 **동시 등록**:
+
+1. **Google Calendar** (`mcp__google-calendar__create-event`)
+   - calendarId: `일정`, timeZone: `Asia/Seoul`
+   - URL이나 부가 설명 → description에 포함
+
+2. **Apple Reminders** (`mcp__apple-reminders__reminders_tasks`)
+   - 리스트 자동 분류 (아래 표 참조)
+   - 알람: 시간 지정 → 1시간 전 + 10분 전, 종일 → 당일 오전 9시
+
+**리마인더 자동 분류:**
+
+| 리스트 | 분류 기준 |
+|--------|-----------|
+| Workspace 🔵 | 업무, 회의, 프로젝트, 미팅 |
+| Job Hunting 🟠 | 이직, 면접, 이력서, 채용 |
+| Study - Work Skills 🟣 | CS, 코딩, 개발, 기술 학습 |
+| Study - Personal Growth 🟣 | 부동산, 저축, 영어, 자격증 |
+| Classes & Meetups 🟢 | 수업, 강의, 세미나, 모임 |
+| Explore 🟣 | 여행, 전시, 페스티벌 |
+| Side Life 🟠 | 사이드 프로젝트, 부업, 블로그 |
+| Running 🟢 | 러닝, 마라톤, 대회 |
+| Workout 🩵 | 운동, 헬스, 수영 (러닝 제외) |
+| Plans 🟠 | 약속, 예약 (병원, 미용실) |
+| Daily 🩵 | 장보기, 택배, 청소, 일상 투두 |
+| Buying 🔵 | 구매, 주문, 쇼핑 |
+| Importants 🔴 | 중요, 마감, 긴급 |
+
+분류가 애매하면 Plans에 등록.
+
+**등록 결과:**
+
+```markdown
+## ✅ 등록 완료
+
+| 항목 | 내용 |
+|------|------|
+| 일정 | 치과 |
+| 날짜 | 2026-03-15 (일) |
+| 시간 | 15:00 ~ 16:00 |
+| Google Calendar | ✅ 일정 |
+| Apple Reminders | ✅ Plans |
+| 알람 | 1시간 전, 10분 전 |
+```
+
+---
 
 ### 주의사항
-- timeZone은 항상 `Asia/Seoul`
-- 일정이 없으면 "등록된 일정이 없습니다." 출력
+
+- timeZone: 항상 `Asia/Seoul`
+- 일정이 없으면: "등록된 일정이 없습니다."
 - 시간순 정렬 필수
-- 과거 일정은 상태를 "완료"로 표시
+- 파싱이 애매하면 최선의 해석으로 진행 (확인 질문 최소화)
+- 등록 실패 시 어떤 서비스가 실패했는지 명시
