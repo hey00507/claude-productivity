@@ -18,14 +18,12 @@
 
 | Command | 설명 | 파일 |
 |---------|------|------|
-| `/schedule` | Google Calendar + Apple Reminders 일정을 조회·분석하고, 필요하면 등록까지 합니다 | [schedule.md](commands/schedule.md) |
-| `/clarify` | 소크라테스식 질문을 통해 모호한 아이디어를 구체화합니다 | [clarify.md](commands/clarify.md) |
-| `/obsidian` | 현재 대화 내용을 분석하여 Obsidian vault에 구조화된 노트로 정리합니다 | [obsidian.md](commands/obsidian.md) |
-| `/blog` | 블로그 현황 조회 — 전체 통계 + 최근 5개 글 + 독려 메시지 | [blog.md](commands/blog.md) |
-| `/blog-write` | Obsidian 노트를 블로그에 투고 — 카테고리/태그 자동 매칭 + clarify 방식 다듬기 | [blog-write.md](commands/blog-write.md) |
-| `/blog-del` | 블로그 게시글 삭제 — 확인 후 삭제 + 자동 재배포 | [blog-del.md](commands/blog-del.md) |
-| `/blog-sync` | Obsidian vault에서 `#publish` 태그 노트를 일괄 스캔하여 블로그에 자동 투고합니다 | [blog-sync.md](commands/blog-sync.md) |
-| `/blog-weekly` | 이번 주 활동을 기반으로 주간 회고 블로그 글 초안을 자동 생성합니다 | [blog-weekly.md](commands/blog-weekly.md) |
+| `/schedule` | 일정 조회·분석·등록 (Google Calendar + Apple Reminders 통합) | [schedule.md](commands/schedule.md) |
+| `/blog` | 블로그 현황 조회 + 글 삭제 | [blog.md](commands/blog.md) |
+| `/blog-write` | Obsidian 노트를 블로그에 투고 (단일 + #publish 일괄 투고) | [blog-write.md](commands/blog-write.md) |
+| `/blog-weekly` | 주간 회고 자동 생성 (Claude 로그 + Google Calendar 기반) | [blog-weekly.md](commands/blog-weekly.md) |
+| `/clarify` | 소크라테스식 질문으로 모호한 아이디어를 구체화 | [clarify.md](commands/clarify.md) |
+| `/obsidian` | 대화 내용을 분석하여 Obsidian vault에 구조화된 노트로 정리 | [obsidian.md](commands/obsidian.md) |
 
 ## 설치
 
@@ -39,13 +37,11 @@ cp -r skills/alarm-volume ~/.claude/skills/
 
 # Commands
 cp commands/schedule.md ~/.claude/commands/
-cp commands/clarify.md ~/.claude/commands/
-cp commands/obsidian.md ~/.claude/commands/
 cp commands/blog.md ~/.claude/commands/
 cp commands/blog-write.md ~/.claude/commands/
-cp commands/blog-del.md ~/.claude/commands/
-cp commands/blog-sync.md ~/.claude/commands/
 cp commands/blog-weekly.md ~/.claude/commands/
+cp commands/clarify.md ~/.claude/commands/
+cp commands/obsidian.md ~/.claude/commands/
 ```
 
 > `/schedule`, `/obsidian`은 MCP 서버 연동이 필요합니다 (google-calendar, apple-reminders, obsidian).
@@ -54,8 +50,8 @@ cp commands/blog-weekly.md ~/.claude/commands/
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - `/schedule` — [google-calendar MCP](https://github.com/nspady/google-calendar-mcp), [apple-reminders MCP](https://github.com/pzingg/apple-reminders-mcp)
-- `/obsidian`, `/blog-write`, `/blog-sync` — [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) + Obsidian MCP
-- `/blog`, `/blog-write`, `/blog-del`, `/blog-sync`, `/blog-weekly` — Astro 블로그 프로젝트 (GitHub Pages 배포)
+- `/obsidian`, `/blog-write` — [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) + Obsidian MCP
+- `/blog`, `/blog-write`, `/blog-weekly` — Astro 블로그 프로젝트 (GitHub Pages 배포)
 
 ## License
 

@@ -1,28 +1,37 @@
 ---
-description: Obsidian vault의 글을 블로그에 게시합니다. "이 글 블로그에 올려줘", "노트 투고", "글 발행해줘" 등 특정 글을 블로그에 올리고 싶을 때 사용하세요. 소크라테스식 질문으로 글을 다듬어 투고합니다.
-allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, Glob, Grep, mcp__obsidian__read_note, mcp__obsidian__search_notes
-argument-hint: <Obsidian 노트 경로 또는 검색 키워드>
+description: Obsidian vault의 글을 블로그에 게시합니다. 단일 글 투고, #publish 태그 일괄 투고 모두 지원합니다. "이 글 블로그에 올려줘", "노트 투고", "글 발행", "블로그 동기화", "publish 태그 글 올려줘", "일괄 투고" 등.
+allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, Glob, Grep, mcp__obsidian__read_note, mcp__obsidian__search_notes, mcp__obsidian__manage_tags, mcp__obsidian__get_frontmatter
+argument-hint: <노트 경로|키워드|sync>
 ---
 
 ## 블로그 글 투고 (/blog-write)
 
-Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
+Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다. 단일 글과 일괄 투고를 모두 지원한다.
 
-### 동작 방식
+### 1단계: 모드 판별
+
+`$ARGUMENTS`를 보고 모드를 결정한다:
+
+| 패턴 | 모드 | 예시 |
+|------|------|------|
+| 노트 경로 또는 키워드 | **A (단일 투고)** | `/blog-write 독서감상` |
+| `sync` 또는 비어있음 | **B (일괄 투고)** | `/blog-write sync`, `/blog-write` |
+
+---
+
+### 모드 A — 단일 글 투고
 
 #### Step 1: 원본 노트 읽기
 
-`$ARGUMENTS`로 전달된 경로 또는 키워드로 Obsidian 노트를 찾아 읽는다.
-- 경로가 주어진 경우: `mcp__obsidian__read_note`로 직접 읽기
-- 키워드가 주어진 경우: `mcp__obsidian__search_notes`로 검색 후 후보를 보여주고 사용자가 선택
-- 비어있는 경우: "어떤 글을 투고할까요?" 질문
+- 경로 → `mcp__obsidian__read_note`로 직접 읽기
+- 키워드 → `mcp__obsidian__search_notes`로 검색 후 후보 표시
 
 #### Step 2: 카테고리 & 메타데이터 결정
 
-원본 글의 내용을 분석하여 적절한 카테고리를 제안한다:
-- `reading` — 책 리뷰, 독후감 관련 내용
+내용 분석하여 카테고리 제안:
+- `reading` — 책 리뷰, 독후감
 - `essay` — 일상, 생각, 에세이
-- `dev` — 기술, 코딩, 개발 경험
+- `dev` — 기술, 코딩, 개발
 
 `AskUserQuestion`으로 확인:
 
@@ -31,69 +40,103 @@ Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
 
 원본: `{노트 경로}`
 
----
-
-이 글을 **{제안 카테고리}** 카테고리로 투고하려고 합니다.
-
-- **제목**: {원본 제목 또는 제안}
+- **제목**: {제안}
 - **카테고리**: {reading / essay / dev}
-- **설명(한 줄 요약)**: {제안}
+- **설명**: {한 줄 요약}
 - **태그**: {제안}
 
-이대로 진행할까요? 수정하고 싶은 부분이 있으면 알려주세요.
+이대로 진행할까요? 수정할 부분 있으면 알려주세요.
 ```
 
 #### Step 3: 글 다듬기 (Clarify 방식)
 
-원본 내용을 블로그 글에 맞게 다듬을 부분을 `AskUserQuestion`으로 하나씩 질문한다:
-
-**질문 영역 (필요한 것만, ONE question per turn):**
-- 글의 톤 (존댓말 / 반말 / 혼합)
-- 추가하고 싶은 내용이나 빼고 싶은 부분
-- 독자에게 전달하고 싶은 핵심 메시지
+필요한 경우 `AskUserQuestion`으로 하나씩 질문 (ONE question per turn):
+- 글의 톤, 추가/삭제할 내용, 핵심 메시지
 - (독서) 별점, 추천 대상
-- (코딩) 시리즈명, 코드 추가 여부
+- (코딩) 시리즈명
 
-**중요**: 질문은 2~3개 이내로 최소화. 사용자가 "그대로 올려줘"라고 하면 즉시 투고 진행.
+질문은 2~3개 이내로 최소화. "그대로 올려줘"하면 즉시 진행.
 
-#### Step 4: 최종 글 작성 & 투고
+#### Step 4: 변환 & 투고
 
-1. frontmatter를 블로그 스키마에 맞게 생성:
-   ```yaml
-   ---
-   title: "제목"
-   description: "한 줄 요약"
-   category: "reading" | "essay" | "dev"
-   tags: ["태그1", "태그2"]
-   pubDate: YYYY-MM-DD
-   draft: false
-   # 독서 전용 (해당 시)
-   bookTitle: "책 제목"
-   bookAuthor: "저자"
-   rating: 4
-   # 코딩 전용 (해당 시)
-   series: "시리즈명"
-   ---
-   ```
+공통 투고 절차(아래)를 따른다.
 
-2. Obsidian 문법을 표준 Markdown으로 변환:
-   - `[[링크]]` → 일반 텍스트 또는 적절한 마크다운 링크
-   - `![[이미지]]` → 표준 이미지 문법 (이미지가 있을 경우 알림)
-   - Obsidian 전용 callout → 표준 blockquote
-   - frontmatter의 Obsidian 태그 → 블로그 태그로 변환
+---
 
-3. 파일을 `/Users/ethankim/WebstormProjects/blog/src/content/posts/{category}/` 에 저장
-   - 파일명: 한글 또는 영어 자유 (예: `블로그를-시작하며.md`, `astro-setup.md`)
-   - URL은 pubDate 기반으로 자동 생성되므로 파일명은 관리 편의에 맞게 설정
+### 모드 B — 일괄 투고 (#publish 스캔)
 
-4. 로컬 빌드 테스트: `cd /Users/ethankim/WebstormProjects/blog && pnpm build`
+#### Step 1: #publish 태그 스캔
 
-5. 빌드 성공 시 git commit & push:
-   - 커밋 메시지: `Post: {글 제목}`
-   - 자동으로 GitHub Actions가 배포
+1. `mcp__obsidian__search_notes`로 `#publish` 태그 노트 검색
+2. `#published` 태그가 있는 노트는 제외
+3. 블로그에 동일 제목 파일 존재 여부 확인 (중복 방지)
 
-#### Step 5: 완료 보고
+#### Step 2: 후보 목록 & 확인
 
+```markdown
+## 📋 투고 대기 노트 ({N}개)
+
+| # | 노트 | 카테고리 | 태그 |
+|---|------|---------|------|
+| 1 | 050.Etc/051.Diary/독서감상.md | reading | #publish/reading |
+| 2 | 020.Growth/021.Study/리액트입문.md | dev | #publish/dev |
+
+어떤 글을 투고할까요? (번호, 전부, 스킵)
+```
+
+없으면: "투고할 노트가 없습니다. Obsidian에서 `#publish` 태그를 추가해주세요." 후 종료.
+
+#### Step 3: 카테고리 결정
+
+| Obsidian 태그 | 블로그 카테고리 |
+|--------------|---------------|
+| `#publish/reading` | `reading` |
+| `#publish/essay` | `essay` |
+| `#publish/dev` | `dev` |
+| `#publish` (단독) | AI가 내용 분석하여 추론 |
+
+#### Step 4: 변환 & 투고
+
+선택된 노트 각각에 대해 공통 투고 절차를 따른다.
+투고 완료 후 `mcp__obsidian__manage_tags`로 `#publish` → `#published` 변경.
+
+---
+
+### 공통 투고 절차
+
+**1. frontmatter 생성:**
+```yaml
+---
+title: "제목"
+description: "한 줄 요약"
+category: "reading" | "essay" | "dev"
+tags: ["태그1", "태그2"]
+pubDate: YYYY-MM-DD
+draft: false
+# reading: bookTitle, bookAuthor, rating
+# dev: series
+---
+```
+
+**2. Obsidian → Markdown 변환:**
+- `[[링크]]` → 일반 텍스트
+- `[[링크|표시텍스트]]` → 표시텍스트
+- `![[이미지]]` → 이미지 발견 시 사용자에게 알림
+- `> [!note]` 등 callout → `> **Note:** ...` blockquote
+- Obsidian frontmatter → 블로그 frontmatter로 대체
+
+**3. 파일 저장:**
+`/Users/ethankim/WebstormProjects/blog/src/content/posts/{category}/{파일명}.md`
+
+**4. 빌드 & 배포:**
+```bash
+cd /Users/ethankim/WebstormProjects/blog && pnpm build
+git add src/content/posts/
+git commit -m "Post: {글 제목}" # 또는 "Sync: {N}개 글 투고"
+git push
+```
+
+**5. 완료 보고:**
 ```markdown
 ## ✅ 투고 완료!
 
@@ -101,13 +144,21 @@ Obsidian vault의 노트를 블로그 게시글로 변환하여 투고한다.
 - **카테고리**: {카테고리}
 - **URL**: https://hey00507.github.io/posts/{yyyymmdd}/
 
-배포가 완료되면 위 URL에서 확인할 수 있어요 (약 30초 소요).
-(URL은 pubDate 기준 자동 생성. 같은 날 여러 글이면 -1, -2 붙음)
+배포 완료까지 약 30초 소요.
 ```
+
+---
+
+### 중복 방지 (일괄 투고)
+
+1. `#published` 태그 → skip
+2. 동일 제목 파일 존재 → "이미 투고된 것 같습니다. 업데이트할까요?"
+3. 업데이트 시 기존 파일 덮어쓰기 + `updatedDate` 추가
 
 ### 주의사항
 
-- 원본 Obsidian 노트는 절대 수정하지 않는다 (복사만)
-- `draft: true`로 투고하고 싶다고 하면 초안으로 저장 (빌드에서 제외됨)
-- 이미지가 포함된 경우 사용자에게 수동 처리 안내
-- 블로그 repo 경로: `/Users/ethankim/WebstormProjects/blog`
+- 원본 Obsidian 노트 내용은 수정하지 않는다 (태그만 변경)
+- 이미지 포함 노트는 텍스트만 투고, 이미지 목록 알림
+- 10개 초과 일괄 투고 시 경고 후 확인
+- `draft: true` 요청 시 초안으로 저장
+- 블로그 repo: `/Users/ethankim/WebstormProjects/blog`
