@@ -1,5 +1,5 @@
 ---
-description: 이번 주 활동을 기반으로 주간 회고 블로그 글 초안을 자동 생성합니다.
+description: 이번 주 활동을 기반으로 주간 회고 블로그 글 초안을 자동 생성합니다. "주간 회고 써줘", "이번주 정리", "회고 글 만들어줘" 등 주간 회고를 블로그에 올리고 싶을 때 사용하세요.
 allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, Glob, Grep, mcp__obsidian__read_note, mcp__obsidian__search_notes, mcp__obsidian__list_directory, mcp__google-calendar__list-events, mcp__google-calendar__get-current-time
 argument-hint: [선택] 특정 주 지정 (예: last, 2026-03-10)
 ---

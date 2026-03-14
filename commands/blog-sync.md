@@ -1,5 +1,5 @@
 ---
-description: Obsidian vault에서 #publish 태그가 달린 노트를 일괄 스캔하여 블로그에 자동 투고합니다.
+description: Obsidian vault에서 #publish 태그가 달린 노트를 일괄 스캔하여 블로그에 자동 투고합니다. "블로그 동기화", "publish 태그 글 올려줘", "일괄 투고" 등 여러 글을 한번에 블로그에 올리고 싶을 때 사용하세요.
 allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, Glob, Grep, mcp__obsidian__read_note, mcp__obsidian__search_notes, mcp__obsidian__manage_tags, mcp__obsidian__get_frontmatter
 argument-hint: [선택] 특정 폴더만 스캔할 경우 폴더 경로
 ---

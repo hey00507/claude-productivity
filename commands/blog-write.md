@@ -1,5 +1,5 @@
 ---
-description: Obsidian vault의 글을 블로그에 게시합니다. 소크라테스식 질문으로 글을 다듬어 투고합니다.
+description: Obsidian vault의 글을 블로그에 게시합니다. "이 글 블로그에 올려줘", "노트 투고", "글 발행해줘" 등 특정 글을 블로그에 올리고 싶을 때 사용하세요. 소크라테스식 질문으로 글을 다듬어 투고합니다.
 allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, Glob, Grep, mcp__obsidian__read_note, mcp__obsidian__search_notes
 argument-hint: <Obsidian 노트 경로 또는 검색 키워드>
 ---

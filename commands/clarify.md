@@ -1,5 +1,5 @@
 ---
-description: Clarify vague ideas through Socratic questioning. Helps transform abstract concepts into concrete understanding.
+description: Clarify vague ideas through Socratic questioning. Use when you want to brainstorm, flesh out a plan, think through an idea, or need help defining requirements. "이거 좀 정리해줘", "아이디어 구체화", "뭘 해야 할지 모르겠어" 등 모호한 생각을 구체화하고 싶을 때 사용하세요.
 allowed-tools: AskUserQuestion, Read, Glob, Grep
 argument-hint: <vague idea or task>
 ---

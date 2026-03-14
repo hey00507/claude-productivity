@@ -1,5 +1,5 @@
 ---
-description: 블로그 게시글을 삭제합니다.
+description: 블로그 게시글을 삭제합니다. "블로그 글 지워줘", "이 포스트 삭제", "글 내려줘" 등 블로그 글을 제거하고 싶을 때 사용하세요.
 allowed-tools: AskUserQuestion, Bash, Read, Glob, Grep
 argument-hint: <글 제목, 파일명, 또는 slug>
 ---
