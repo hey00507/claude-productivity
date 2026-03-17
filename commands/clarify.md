@@ -101,6 +101,20 @@ Let's make this concrete.
 Can you give me a specific example of how this would work in practice?
 ```
 
+#### Step 6: 후속 액션 연결
+
+구체화가 완료되면 `AskUserQuestion`으로 다음 액션을 제안한다:
+
+```
+구체화된 내용을 가지고 어떤 작업을 할까요?
+1. 블로그 글 작성 (/blog-write)
+2. Obsidian 노트 정리 (/obsidian)
+3. PRD/기획서 작성
+4. 여기서 끝내기
+```
+
+사용자가 선택하면 해당 스킬로 자연스럽게 연결한다. 구체화된 내용을 컨텍스트로 넘긴다.
+
 ### Important Notes
 - Focus on extracting concrete details, not abstract discussion
 - If user is vague, ask for concrete examples

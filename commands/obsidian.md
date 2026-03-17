@@ -16,7 +16,7 @@ argument-hint: <비워두면 자동 분류>
 | `010.Work/` | 회사/업무 (회의록, 설계서) | `work`, `work/meeting` |
 | `020.Growth/` | 자기개발 (공부, 운동, 독서) | `study`, `growth` |
 | `030.Plans/` | 계획/일정/약속 | `plan/running`, `plan/event` |
-| `040.Logs/` | Claude 대화 로그 | `log` |
+| `040.Logs/` | Claude 대화 로그 | `log`, `claude-log` |
 | `050.Etc/` | 일기, 사색, 여행, 기타 | `diary`, `etc` |
 
 ---
@@ -25,13 +25,15 @@ argument-hint: <비워두면 자동 분류>
 
 #### Step 1: 대화 로그 저장 (자동)
 
-대화 내용을 분석하여 `040.Logs/yyyy-MM-dd claude.md`에 **항상** 저장한다.
+대화 내용을 분석하여 `040.Logs/{연도}/{월}/yyyy-MM-dd claude.md`에 **항상** 저장한다.
+(예: `040.Logs/2026/03/2026-03-17 claude.md`)
 
 1. 먼저 `read_note`로 해당 날짜 로그가 있는지 확인
 2. 있으면 기존 내용을 읽고 **새로운 토픽만 append** (중복 방지)
    - `---\n## Related` 블록 바로 앞에 새 토픽을 삽입 (`patch_note` 사용)
    - 새 Related 링크가 있으면 기존 Related 섹션에 추가
 3. 없으면 새 로그 파일 생성 (`write_note`)
+4. 대화 중 `/blog-write`로 블로그 투고가 있었으면 로그에 `## 블로그 투고` 섹션을 추가하여 투고 제목, URL, 투고 시각 등을 기록한다
 
 #### Step 2: 관련 노트 탐색 및 제안
 
@@ -45,6 +47,7 @@ argument-hint: <비워두면 자동 분류>
 탐색 결과를 바탕으로 사용자에게 **제안**한다:
 - **기존 노트 업데이트** — 관련 내용이 이미 있는 노트
 - **신규 노트 생성** — 적절한 노트가 없을 때, 위치와 파일명을 제안
+- **블로그 투고** — 대화에 TIL(Today I Learned)이나 블로그 소재가 있으면 `/blog-write`로 포스팅 제안
 - **해당 없음** — 로그 외에 정리할 내용이 없으면 스킵
 
 **제안 형식** (AskUserQuestion 사용):
@@ -53,6 +56,7 @@ Vault를 확인했어요. 다음 노트에 정리할 수 있을 것 같아요:
 
 1. [업데이트] 010.Work/012.DailyMail/PRD.md — Discord 채널 분리, 스케줄 변경 반영
 2. [신규] 020.Growth/021.Study/yyyy-MM-dd 주제.md — 학습 내용 정리
+3. [블로그] /blog-write로 TIL 포스팅 — "오늘 배운 XX 정리"
 
 어떤 것을 진행할까요? (번호, 전부, 스킵)
 ```
@@ -84,11 +88,20 @@ Vault를 확인했어요. 다음 노트에 정리할 수 있을 것 같아요:
 - 기존 노트가 있으면 덮어쓰지 말고 `patch_note`로 업데이트
 
 **040.Logs (대화 로그):**
-- 파일명: `yyyy-MM-dd claude.md`
+- 파일명: `yyyy-MM-dd claude.md` (경로: `040.Logs/{연도}/{월}/`)
+- frontmatter tags 작성 규칙:
+  - 기본: `"log"`, `"claude-log"`, `"yyyy-MM-dd"`
+  - 대화 내용에 따라 적절한 태그 추가:
+    - 코딩/개발 작업 → `"work/dev"`, `"project/프로젝트명"`
+    - 회의 → `"work/meeting"`
+    - 학습 → `"growth/study"`, `"growth/ai"` 등
+    - 설정/환경 → `"work/setup"`
+    - 블로그 투고 → `"blog"`
+  - 상태 태그: 진행중이면 `"status/active"`, 완료면 `"status/done"`
 - 형식:
 ```markdown
 ---
-tags: ["log"]
+tags: ["log", "claude-log", "yyyy-MM-dd", "work/dev", "project/프로젝트명"]
 date: "yyyy-MM-dd"
 ---
 
@@ -101,6 +114,11 @@ date: "yyyy-MM-dd"
 
 ## 토픽 2 제목
 ...
+
+## 블로그 투고 (해당 시)
+- **제목**: 투고한 글 제목
+- **URL**: 블로그 URL
+- **투고 시각**: HH:MM
 
 ---
 ## Related
@@ -150,7 +168,7 @@ date: "yyyy-MM-dd"
 | 액션 | 파일 | 폴더 |
 |------|------|------|
 | 생성 | 2026-03-11 일정명.md | 030.Plans/ |
-| 업데이트 | 2026-03-11 claude.md | 040.Logs/ |
+| 업데이트 | 2026-03-11 claude.md | 040.Logs/2026/03/ |
 
 총 N개 노트 처리 완료.
 ```

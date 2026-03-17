@@ -1,24 +1,27 @@
 ---
-description: 일정을 조회·브리핑하고, 필요하면 등록까지 합니다. "오늘 뭐 있어?", "이번주 일정", "내일 스케줄", "마라톤 일정 찾아줘", "3시에 치과 넣어줘" 등 일정과 관련된 모든 요청에 사용하세요.
-allowed-tools: mcp__google-calendar__list-events, mcp__google-calendar__search-events, mcp__google-calendar__get-current-time, mcp__google-calendar__create-event, mcp__apple-reminders__reminders_tasks, mcp__apple-reminders__reminders_subtasks, mcp__apple-reminders__reminders_lists, mcp__obsidian__search_notes, mcp__obsidian__read_note
-argument-hint: <today|week|tomorrow|날짜|기간|키워드|"언제 무엇">
+description: 일정을 조회·브리핑하고, 필요하면 등록까지 합니다. "오늘 뭐 있어?", "이번주 일정", "내일 스케줄", "마라톤 일정 찾아줘", "3시에 치과 넣어줘", "치과 완료" 등 일정과 관련된 모든 요청에 사용하세요.
+allowed-tools: mcp__google-calendar__list-events, mcp__google-calendar__search-events, mcp__google-calendar__get-current-time, mcp__google-calendar__create-event, mcp__google-calendar__update-event, mcp__apple-reminders__reminders_tasks, mcp__apple-reminders__reminders_subtasks, mcp__apple-reminders__reminders_lists, mcp__obsidian__search_notes, mcp__obsidian__read_note
+argument-hint: <today|week|tomorrow|날짜|기간|키워드|"언제 무엇"|"일정명 완료">
 ---
 
 ## 일정 관리 (/schedule)
 
-Google Calendar + Apple Reminders를 **조회·분석·등록**하는 통합 스킬이다.
+Google Calendar + Apple Reminders를 **조회·분석·등록·완료 처리**하는 통합 스킬이다.
 
 ---
 
 ### 1단계: 모드 판별
 
-`$ARGUMENTS`를 보고 3가지 모드 중 하나를 선택한다:
+`$ARGUMENTS`를 보고 4가지 모드 중 하나를 선택한다:
 
 | 패턴 | 모드 | 예시 |
 |------|------|------|
 | 비어있음 / 기간 키워드 / 날짜 | **A (브리핑)** | `today`, `week`, `3/15`, `3/1~3/10` |
 | 일정 이름·키워드 | **B (검색)** | `마라톤`, `팀미팅` |
 | 날짜 + 일정명 | **C (등록)** | `오늘 3시 치과`, `내일 10시 팀미팅` |
+| 완료 의도 + 일정명 | **D (완료 처리)** | `치과 완료`, `러닝 다녀옴`, `팀미팅 끝남` |
+
+**모드 D 판별 키워드:** `완료`, `다녀옴`, `끝남`, `했음`, `갔다옴`, `끝`, `done`, `finished` 등 완료 의도가 포함된 경우.
 
 **모드 A 기간 매핑:**
 - 비어있음 / `today` → 오늘
@@ -56,6 +59,29 @@ Google Calendar + Apple Reminders를 **조회·분석·등록**하는 통합 스
 #### 모드 C — 일정 등록
 
 조회 없이 바로 등록 절차로 진행한다. (아래 "일정 등록" 섹션 참조)
+
+#### 모드 D — 완료 처리
+
+`$ARGUMENTS`에서 일정명을 추출한 뒤 다음 절차를 수행한다:
+
+1. **검색**: Apple Reminders와 Google Calendar에서 해당 일정을 **병렬로** 검색한다.
+   - `mcp__apple-reminders__reminders_tasks` — search 파라미터로 검색 (미완료 항목 대상)
+   - `mcp__google-calendar__search-events` — 키워드 검색
+
+2. **완료 처리**: 검색 결과를 기반으로 **병렬로** 업데이트한다.
+   - **Apple Reminders**: 해당 리마인더를 `completed: true`로 업데이트 (`mcp__apple-reminders__reminders_tasks`의 update 액션)
+   - **Google Calendar**: 해당 이벤트의 summary 앞에 `[완료]` 접두사 추가 (`mcp__google-calendar__update-event`)
+
+3. **결과 출력**:
+
+```
+완료 처리: {일정명} (리마인더 체크 + 캘린더 [완료] 표시)
+```
+
+**주의:**
+- 검색 결과가 여러 개면 가장 최근(오늘 기준 가까운) 항목을 선택
+- 리마인더만 있거나 캘린더만 있는 경우, 존재하는 쪽만 처리하고 결과에 명시
+- 검색 결과가 없으면: "해당 일정을 찾을 수 없습니다. 정확한 일정명을 알려주세요."
 
 ---
 
