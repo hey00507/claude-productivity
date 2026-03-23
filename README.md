@@ -39,6 +39,12 @@
 | `/obsidian` | 대화 내용을 분석하여 Obsidian vault에 구조화된 노트로 정리 | [obsidian.md](commands/obsidian.md) |
 | `/clarify` | 소크라테스식 질문으로 모호한 아이디어를 구체화 → 후속 액션 연결 | [clarify.md](commands/clarify.md) |
 
+### 건강 & 운동
+
+| Command | 설명 | 파일 |
+|---------|------|------|
+| `/coach` | 개인 PT/러닝 코치 — 체중·식단·러닝·웨이트 기록, 추이 분석, 목표 예측, 코칭 조언 | [coach.md](commands/coach.md) |
+
 ### 프로젝트
 
 | Command | 설명 | 파일 |
@@ -76,9 +82,10 @@ cp commands/blog-dev.md ~/.claude/commands/
 cp commands/clarify.md ~/.claude/commands/
 cp commands/obsidian.md ~/.claude/commands/
 cp commands/project-status.md ~/.claude/commands/
+cp commands/coach.md ~/.claude/commands/
 ```
 
-> `/schedule`, `/daily`, `/obsidian`은 MCP 서버 연동이 필요합니다 (google-calendar, apple-reminders, obsidian).
+> `/schedule`, `/daily`, `/obsidian`, `/coach`는 MCP 서버 연동이 필요합니다 (google-calendar, apple-reminders, obsidian).
 
 ## 요구사항
 
